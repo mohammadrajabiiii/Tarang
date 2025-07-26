@@ -17,7 +17,9 @@ function preload() {
 }
 
 function setup() {
-  canvas = createCanvas(800, 800, WEBGL);
+  let uiWidth = 320; // match .ui width
+  canvas = createCanvas(windowWidth - uiWidth, windowHeight, WEBGL);
+  canvas.parent("canvas-container");
   canvas.parent("canvas-container");
   canvas.style('z-index', '-1');
   noStroke();
@@ -220,4 +222,9 @@ function drawFacePG(pg, v1, v2, v3, v4, face) {
     pg.vertex(...v4);
     pg.endShape(CLOSE);
   }
+}
+
+function windowResized() {
+  let uiWidth = 320;
+  resizeCanvas(windowWidth - uiWidth, windowHeight);
 }
