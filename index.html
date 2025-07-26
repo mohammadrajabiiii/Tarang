@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tarang Cube Factory</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .ui {
+      width: 320px;
+      padding: 40px;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+
+    .canvas-container {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+
+    .slider-container {
+      margin-bottom: 20px;
+    }
+
+    .slider-container label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 20px;
+      background: #4D4D4D;
+      border: none;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #E6E6E6;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #E6E6E6;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    .color-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .color-section label {
+      font-size: 14px;
+    }
+
+    .color-section select {
+      width: 100%;
+      padding: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      background: #4D4D4D;
+      color: white;
+      border: none;
+    }
+
+    span[onclick^="resetSlider"] {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .play-controls {
+      margin-top: 40px;
+      font-size: 14px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .play-controls span {
+      cursor: pointer;
+      text-decoration: underline;
+      color: #aaa;
+    }
+
+    .play-controls span#playToggle {
+      color: white;
+    }
+
+    .play-controls span.active-axis {
+      color: white;
+    }
+
+    .export-button {
+      margin-top: 30px;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .dimensions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .dimensions label {
+      font-size: 14px;
+    }
+
+    .dim-input {
+      width: 100%;
+      padding: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      background: #4D4D4D;
+      color: white;
+      border: none;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="ui">
+    <h1>Tarang Cube Factory</h1>
+
+    <div class="slider-container">
+      <label>Rotate X <span onclick="resetSlider('x')">Reset</span></label>
+      <input type="range" id="x" min="0" max="6.28" step="0.01" value="0">
+    </div>
+    <div class="slider-container">
+      <label>Rotate Y <span onclick="resetSlider('y')">Reset</span></label>
+      <input type="range" id="y" min="0" max="6.28" step="0.01" value="0">
+    </div>
+    <div class="slider-container">
+      <label>Rotate Z <span onclick="resetSlider('z')">Reset</span></label>
+      <input type="range" id="z" min="0" max="6.28" step="0.01" value="0">
+    </div>
+    <div class="slider-container">
+      <label>Cube Size <span onclick="resetSlider('scale')">Reset</span></label>
+      <input type="range" id="scale" min="50" max="300" step="1" value="150">
+    </div>
+    <div class="slider-container">
+      <label>Extrude <span onclick="resetSlider('depth')">Reset</span></label>
+      <input type="range" id="depth" min="50" max="300" step="1" value="150">
+    </div>
+    <div class="slider-container">
+      <label>Spacing <span onclick="resetSlider('spacing')">Reset</span></label>
+      <input type="range" id="spacing" min="50" max="500" step="10" value="200">
+    </div>
+
+    <div class="dimensions">
+      <label>Columns
+        <input id="cols" type="number" value="1" min="1" class="dim-input">
+      </label>
+      <label>Rows
+        <input id="rows" type="number" value="1" min="1" class="dim-input">
+      </label>
+    </div>
+
+    <div class="color-section">
+      <label>Front
+        <select id="frontColor" onchange="handleFaceChange(this, 'front')">
+          <option value="#FF5242" selected>🟥 Red</option>
+          <option value="#FFD000">🟨 Yellow</option>
+          <option value="#0859FA">🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+      <label>Back
+        <select id="backColor" onchange="handleFaceChange(this, 'back')">
+          <option value="#FF5242" selected>🟥 Red</option>
+          <option value="#FFD000">🟨 Yellow</option>
+          <option value="#0859FA">🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+      <label>Left
+        <select id="leftColor" onchange="handleFaceChange(this, 'left')">
+          <option value="#FF5242">🟥 Red</option>
+          <option value="#FFD000" selected>🟨 Yellow</option>
+          <option value="#0859FA">🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+      <label>Right
+        <select id="rightColor" onchange="handleFaceChange(this, 'right')">
+          <option value="#FF5242">🟥 Red</option>
+          <option value="#FFD000" selected>🟨 Yellow</option>
+          <option value="#0859FA">🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+      <label>Top
+        <select id="topColor" onchange="handleFaceChange(this, 'top')">
+          <option value="#FF5242">🟥 Red</option>
+          <option value="#FFD000">🟨 Yellow</option>
+          <option value="#0859FA" selected>🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+      <label>Bottom
+        <select id="bottomColor" onchange="handleFaceChange(this, 'bottom')">
+          <option value="#FF5242">🟥 Red</option>
+          <option value="#FFD000">🟨 Yellow</option>
+          <option value="#0859FA" selected>🟦 Blue</option>
+          <option value="image">🖼️ Image</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="play-controls">
+      <span id="playToggle" onclick="togglePlay()">Play</span>
+      <span id="axisX" class="axis-btn active-axis" onclick="setAxis('x')">x</span>
+      <span id="axisY" class="axis-btn" onclick="setAxis('y')">y</span>
+      <span id="axisZ" class="axis-btn" onclick="setAxis('z')">z</span>
+    </div>
+
+    <div class="export-button" onclick="exportPNG()">Export PNG</div>
+  </div>
+
+  <div class="canvas-container" id="canvas-container"></div>
+  <script src="sketch.js"></script>
+</body>
+</html>
