@@ -17,17 +17,23 @@ function preload() {
 }
 
 function setup() {
-  canvas = createCanvas(800, 800, WEBGL);
+  const uiWidth = document.querySelector('.ui').offsetWidth;
+  canvas = createCanvas(windowWidth - uiWidth, windowHeight, WEBGL);
   canvas.parent("canvas-container");
   canvas.style('z-index', '-1');
   noStroke();
   noLights();
 }
 
+function windowResized() {
+  const uiWidth = document.querySelector('.ui').offsetWidth;
+  resizeCanvas(windowWidth - uiWidth, windowHeight);
+}
+
 function draw() {
   background(0);
-  ortho(-400, 400, -400, 400, -1000, 1000);
-  translate((width + 200) / 2 - width / 2, -200, 0);
+  ortho(-width / 2, width / 2, -height / 2, height / 2, -1000, 1000);
+  translate(0, 0, 0);
 
   let angleX = parseFloat(document.getElementById("x").value);
   let angleY = parseFloat(document.getElementById("y").value);
@@ -156,23 +162,25 @@ function setAxis(axis) {
 }
 
 function exportPNG() {
-  const exportSize = 2400;
+  const exportScale = 3;
+  const exportSize = 800 * exportScale;
   let pg = createGraphics(exportSize, exportSize, WEBGL);
   pg.pixelDensity(1);
   pg.clear();
   pg.noStroke();
-  pg.ortho(-600, 600, -600, 600, -3000, 3000);
+  pg.ortho(-exportSize/2, exportSize/2, -exportSize/2, exportSize/2, -3000, 3000);
 
   let angleX = parseFloat(document.getElementById("x").value);
   let angleY = parseFloat(document.getElementById("y").value);
   let angleZ = parseFloat(document.getElementById("z").value);
-  let size = parseFloat(document.getElementById("scale").value);
-  let depth = parseFloat(document.getElementById("depth").value);
+  let size = parseFloat(document.getElementById("scale").value) * exportScale;
+  let depth = parseFloat(document.getElementById("depth").value) * exportScale;
+  let spacing = parseFloat(document.getElementById("spacing").value) * exportScale;
+  let cols = parseInt(document.getElementById("cols").value);
+  let rows = parseInt(document.getElementById("rows").value);
 
-  pg.push();
-  pg.rotateX(angleX);
-  pg.rotateY(angleY);
-  pg.rotateZ(angleZ);
+  let startX = -((cols - 1) * spacing) / 2;
+  let startY = -((rows - 1) * spacing) / 2;
 
   const faceData = {
     front: getFaceData("frontColor", "front"),
@@ -183,9 +191,18 @@ function exportPNG() {
     bottom: getFaceData("bottomColor", "bottom"),
   };
 
-  drawCubeWithGraphics(pg, size * 3.3, size * (depth / 150) * 3.3, faceData);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      pg.push();
+      pg.translate(startX + c * spacing, startY + r * spacing, 0);
+      pg.rotateX(angleX);
+      pg.rotateY(angleY);
+      pg.rotateZ(angleZ);
+      drawCubeWithGraphics(pg, size, depth, faceData);
+      pg.pop();
+    }
+  }
 
-  pg.pop();
   pg.save("tarang-cube.png");
 }
 
